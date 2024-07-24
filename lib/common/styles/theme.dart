@@ -8,7 +8,7 @@ class AppTheme {
         appBarTheme: AppBarTheme(
           centerTitle: false,
           elevation: 0,
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.white,
           foregroundColor: AppColor.primary,
           surfaceTintColor: Colors.transparent,
           titleTextStyle: GoogleFonts.poppins(
@@ -36,15 +36,15 @@ class AppTheme {
         ),
         primaryColor: AppColor.primaryLight,
         primaryColorDark: AppColor.primary,
-        scaffoldBackgroundColor: Colors.black,
+        scaffoldBackgroundColor: Colors.white,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         colorScheme: ColorScheme.fromSwatch().copyWith(
           secondary: AppColor.secondary,
         ),
         textTheme: GoogleFonts.poppinsTextTheme(
           Theme.of(context).textTheme.apply(
-                bodyColor: Colors.white,
-                displayColor: Colors.white,
+                bodyColor: Colors.black,
+                displayColor: Colors.black,
               ),
         ),
         inputDecorationTheme: InputDecorationTheme(
