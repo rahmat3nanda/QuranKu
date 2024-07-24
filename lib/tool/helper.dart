@@ -190,3 +190,14 @@ extension FirstWhereExt<T> on List<T> {
     return null;
   }
 }
+
+extension IndexWhereExt<T> on List<T> {
+  int? indexWhereOrNull(bool Function(T) test) {
+    for (int i = 0; i < length; i++) {
+      if (test(this[i])) {
+        return i;
+      }
+    }
+    return null;
+  }
+}
