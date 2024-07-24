@@ -8,35 +8,94 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:quranku/bloc/surah/surah_bloc.dart';
+import 'package:quranku/common/configs.dart';
+import 'package:quranku/common/constants.dart';
+import 'package:quranku/common/styles.dart';
+import 'package:quranku/model/app/app_version_model.dart';
+import 'package:quranku/model/app/scheme_model.dart';
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  @override
+  void initState() {
+    super.initState();
+    _getInfo();
+  }
+
+  void _getInfo() {
+    PackageInfo.fromPlatform().then((i) {
+      setState(() {
+        AppConfig.shared.version = AppVersionModel(
+          name: i.version,
+          number: int.tryParse(i.buildNumber) ?? 1,
+        );
+      });
+    }).catchError((e) {
+      _getInfo();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<SurahBloc>(
+          create: (BuildContext context) => SurahBloc(SurahInitialState()),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Stack(
+          children: [
+            AnnotatedRegion<SystemUiOverlayStyle>(
+              value: SystemUiOverlayStyle.light,
+              child: MaterialApp(
+                localizationsDelegates: AppLocale.shared.delegates,
+                supportedLocales: AppLocale.shared.supports,
+                debugShowCheckedModeBanner: false,
+                title: AppString.appName,
+                theme: AppTheme.main(context),
+                home: const MyHomePage(title: "title"),
+              ),
+            ),
+            if (AppConfig.shared.scheme == AppScheme.dev)
+              IgnorePointer(
+                ignoring: true,
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: Opacity(
+                    opacity: .3,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(width: double.infinity),
+                        Text(
+                          "DEV\n${AppConfig.shared.version.toString()}",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 32.0,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
