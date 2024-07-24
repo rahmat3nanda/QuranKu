@@ -20,8 +20,8 @@ class SurahDetailModel {
   final String? description;
   final Map<String, String>? audioFull;
   final List<AyatModel>? ayat;
-  final SurahModel? suratSelanjutnya;
-  final SurahModel? suratSebelumnya;
+  final SurahModel? nextSurah;
+  final SurahModel? prevSurah;
 
   SurahDetailModel({
     this.number,
@@ -33,8 +33,8 @@ class SurahDetailModel {
     this.description,
     this.audioFull,
     this.ayat,
-    this.suratSelanjutnya,
-    this.suratSebelumnya,
+    this.nextSurah,
+    this.prevSurah,
   });
 
   factory SurahDetailModel.fromJson(Map<String, dynamic> json) =>
@@ -52,10 +52,10 @@ class SurahDetailModel {
             ? []
             : List<AyatModel>.from(
                 json["ayat"]!.map((x) => AyatModel.fromJson(x))),
-        suratSelanjutnya: json["suratSelanjutnya"] == null
+        nextSurah: json["suratSelanjutnya"] == null
             ? null
             : SurahModel.fromJson(json["suratSelanjutnya"]),
-        suratSebelumnya: json["suratSebelumnya"] == null
+        prevSurah: json["suratSebelumnya"] == null
             ? null
             : SurahModel.fromJson(json["suratSebelumnya"]),
       );
@@ -73,7 +73,7 @@ class SurahDetailModel {
         "ayat": ayat == null
             ? []
             : List<dynamic>.from(ayat!.map((x) => x.toJson())),
-        "suratSelanjutnya": suratSelanjutnya?.toJson(),
-        "suratSebelumnya": suratSebelumnya?.toJson(),
+        "suratSelanjutnya": nextSurah?.toJson(),
+        "suratSebelumnya": prevSurah?.toJson(),
       };
 }
