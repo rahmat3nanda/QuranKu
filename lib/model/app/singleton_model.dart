@@ -8,6 +8,9 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:quranku/model/interpretation_model.dart';
+import 'package:quranku/model/surah_detail_model.dart';
+import 'package:quranku/model/surah_model.dart';
 
 class SingletonModel {
   static SingletonModel? _singleton;
@@ -26,8 +29,15 @@ class SingletonModel {
   static SingletonModel get shared => _singleton ??= SingletonModel._internal();
 
   BuildContext? context;
+  SingletonSurah surah = SingletonSurah();
 
   void destroy() {
     _singleton = null;
   }
+}
+
+class SingletonSurah {
+  List<SurahModel> data = [];
+  List<SurahDetailModel> detail = [];
+  List<InterpretationModel> interpretation = [];
 }
