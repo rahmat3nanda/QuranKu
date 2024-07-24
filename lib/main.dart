@@ -10,7 +10,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quranku/app.dart';
+import 'package:quranku/bloc/observer.dart';
 import 'package:quranku/common/configs.dart';
 import 'package:quranku/common/constants.dart';
 import 'package:quranku/model/app/app_version_model.dart';
@@ -34,5 +36,6 @@ void main() async {
     baseUrlApi: "https://equran.id/api/v2/",
     version: AppVersionModel.empty(),
   );
+  Bloc.observer = Observer();
   runApp(const App());
 }
