@@ -1,4 +1,4 @@
-# quran_ku
+# QuranKu
 
 A new Flutter project.
 
