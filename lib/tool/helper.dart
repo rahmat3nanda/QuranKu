@@ -201,3 +201,9 @@ extension IndexWhereExt<T> on List<T> {
     return null;
   }
 }
+
+extension IntArab on int {
+  String toArab() {
+    return NumberFormat("#", 'ar_EG').format(this);
+  }
+}
