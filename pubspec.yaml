@@ -51,6 +51,8 @@ dependencies:
       url: https://github.com/peng8350/flutter_pulltorefresh.git
       ref: master # commit hash
   device_info_plus: ^10.1.0
+  expansion_widget: ^0.1.0
+  flutter_widget_from_html_core: ^0.15.1
 
 dev_dependencies:
   flutter_test:
