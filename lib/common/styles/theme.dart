@@ -8,13 +8,13 @@ class AppTheme {
         appBarTheme: AppBarTheme(
           centerTitle: false,
           elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: AppColor.primary,
+          backgroundColor: AppColor.primary,
+          foregroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           titleTextStyle: GoogleFonts.poppins(
             fontSize: 24,
             fontWeight: FontWeight.w600,
-            color: AppColor.primary,
+            color: Colors.white,
           ),
         ),
         cardTheme: const CardTheme(surfaceTintColor: Colors.transparent),
