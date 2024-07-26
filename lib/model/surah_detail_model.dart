@@ -46,18 +46,22 @@ class SurahDetailModel {
         place: json["tempatTurun"],
         meaning: json["arti"],
         description: json["deskripsi"],
-        audioFull: Map.from(json["audioFull"]!)
-            .map((k, v) => MapEntry<String, String>(k, v)),
+        audioFull: json["audioFull"] == null
+            ? null
+            : Map.from(json["audioFull"]!)
+                .map((k, v) => MapEntry<String, String>(k, v)),
         ayat: json["ayat"] == null
-            ? []
+            ? null
             : List<AyatModel>.from(
                 json["ayat"]!.map((x) => AyatModel.fromJson(x))),
-        nextSurah: json["suratSelanjutnya"] == null
-            ? null
-            : SurahModel.fromJson(json["suratSelanjutnya"]),
-        prevSurah: json["suratSebelumnya"] == null
-            ? null
-            : SurahModel.fromJson(json["suratSebelumnya"]),
+        nextSurah:
+            json["suratSelanjutnya"] != null && json["suratSelanjutnya"] is Map
+                ? SurahModel.fromJson(json["suratSelanjutnya"])
+                : null,
+        prevSurah:
+            json["suratSebelumnya"] != null && json["suratSebelumnya"] is Map
+                ? SurahModel.fromJson(json["suratSebelumnya"])
+                : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -68,10 +72,12 @@ class SurahDetailModel {
         "tempatTurun": place,
         "arti": meaning,
         "deskripsi": description,
-        "audioFull":
-            Map.from(audioFull!).map((k, v) => MapEntry<String, dynamic>(k, v)),
+        "audioFull": audioFull == null
+            ? null
+            : Map.from(audioFull!)
+                .map((k, v) => MapEntry<String, dynamic>(k, v)),
         "ayat": ayat == null
-            ? []
+            ? null
             : List<dynamic>.from(ayat!.map((x) => x.toJson())),
         "suratSelanjutnya": nextSurah?.toJson(),
         "suratSebelumnya": prevSurah?.toJson(),
