@@ -53,6 +53,7 @@ dependencies:
   device_info_plus: ^10.1.0
   expansion_widget: ^0.1.0
   flutter_widget_from_html_core: ^0.15.1
+  just_audio: ^0.9.39
 
 dev_dependencies:
   flutter_test:
