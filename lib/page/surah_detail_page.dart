@@ -1,34 +1,38 @@
 /*
  * *
- *  * home_page.dart - quran_ku
- *  * Created by Rahmat Trinanda (rahmat3nanda@gmail.com) on 07/25/2024, 00:48
+ *  * surah_detail_page.dart - quran_ku
+ *  * Created by Rahmat Trinanda (rahmat3nanda@gmail.com) on 07/25/2024, 17:16
  *  * Copyright (c) 2024 . All rights reserved.
- *  * Last modified 07/25/2024, 00:48
- *  
+ *  * Last modified 07/25/2024, 17:16
+ *
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:quranku/bloc/surah/surah_bloc.dart';
 import 'package:quranku/common/styles.dart';
 import 'package:quranku/model/app/error_model.dart';
 import 'package:quranku/model/app/singleton_model.dart';
+import 'package:quranku/model/surah_detail_model.dart';
 import 'package:quranku/model/surah_model.dart';
-import 'package:quranku/page/surah_detail_page.dart';
 import 'package:quranku/tool/helper.dart';
+import 'package:quranku/widget/app_expandable_widget.dart';
 import 'package:quranku/widget/reload_data_widget.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class SurahDetailPage extends StatefulWidget {
+  final SurahModel surah;
+
+  const SurahDetailPage({super.key, required this.surah});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<SurahDetailPage> createState() => _SurahDetailPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _SurahDetailPageState extends State<SurahDetailPage> {
   late SingletonModel _model;
   late SurahBloc _surahBloc;
   late Helper _helper;
@@ -57,12 +61,17 @@ class _HomePageState extends State<HomePage> {
     _isLoading = true;
     _error = null;
 
-    if (fromCache && _model.surah.data.isNotEmpty) {
+    if (fromCache && _detail() != null) {
       _isLoading = false;
       return;
     }
 
-    _surahBloc.add(const SurahDataEvent());
+    _surahBloc.add(SurahDetailEvent(widget.surah.number!));
+  }
+
+  SurahDetailModel? _detail() {
+    return _model.surah.detail
+        .firstWhereOrNull((e) => e.number == widget.surah.number);
   }
 
   @override
@@ -70,16 +79,16 @@ class _HomePageState extends State<HomePage> {
     return BlocListener<SurahBloc, SurahState>(
       bloc: _surahBloc,
       listener: (c, s) {
-        if (s is SurahDataSuccessState) {
+        if (s is SurahDetailSuccessState) {
           _model = SingletonModel.withContext(context);
           _isLoading = false;
-        } else if (s is SurahDataFailedState) {
+        } else if (s is SurahDetailFailedState) {
           _isLoading = false;
-          if (_model.surah.data.isNotEmpty) {
+          if (_detail() != null) {
             _helper.showToast("Gagal memuat data");
           } else {
             _error = ErrorModel(
-              event: const SurahDataEvent(),
+              event: SurahDetailEvent(widget.surah.number!),
               error: s.data.message,
             );
           }
@@ -91,7 +100,7 @@ class _HomePageState extends State<HomePage> {
           return Scaffold(
             appBar: AppBar(
               title: Text(
-                "QuranKu",
+                widget.surah.latinName ?? "QuranKu",
                 style: GoogleFonts.montserrat(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
@@ -133,6 +142,7 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
+
     if (_error != null) {
       return Center(
         child: ReloadDataWidget(
@@ -142,61 +152,83 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    if (_detail() == null) {
+      return Center(
+        child: ReloadDataWidget(
+          error: "Data tidak valid.",
+          onReload: _onRefresh,
+        ),
+      );
+    }
+
     return _mainView();
   }
 
   Widget _mainView() {
-    return ListView.separated(
-      primary: false,
+    SurahDetailModel d = _detail()!;
+    return ListView(
       shrinkWrap: true,
+      primary: false,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      itemCount: _model.surah.data.length,
-      separatorBuilder: (c, i) => const SizedBox(height: 12),
-      itemBuilder: (c, i) {
-        SurahModel d = _model.surah.data[i];
-        return Card(
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      children: [
+        _cardView(
+          child: ListView(
+            shrinkWrap: true,
+            primary: false,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                (d.number ?? 0).toArab(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                d.name ?? "-",
+                textAlign: TextAlign.right,
+              ),
+              const SizedBox(height: 4),
+              Text(d.latinName ?? "-"),
+              const SizedBox(height: 4),
+              Text("Tempat turun: ${d.place ?? "-"}"),
+              const SizedBox(height: 4),
+              Text("Arti: ${d.meaning ?? "-"}"),
+            ],
           ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            splashColor: AppColor.primary,
-            onTap: () => _helper.jumpToPage(
-              context,
-              page: SurahDetailPage(surah: d),
-            ),
-            child: ListView(
-              shrinkWrap: true,
-              primary: false,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text(
-                  (d.number ?? 0).toArab(),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  d.name ?? "-",
-                  textAlign: TextAlign.right,
-                ),
-                const SizedBox(height: 4),
-                Text(d.latinName ?? "-"),
-                const SizedBox(height: 4),
-                Text("Tempat turun: ${d.place ?? "-"}"),
-                const SizedBox(height: 4),
-                Text("Arti: ${d.meaning ?? "-"}"),
-              ],
+        ),
+        if (d.description != null) const SizedBox(height: 12),
+        if (d.description != null)
+          AppExpandableWidget(
+            title: "Deskripsi",
+            initiallyExpanded: false,
+            headerColor: Colors.white,
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: HtmlWidget(d.description ?? "-"),
             ),
           ),
-        );
-      },
+      ],
+    );
+  }
+
+  Widget _cardView({required Widget child}) {
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        splashColor: AppColor.primary,
+        onTap: () {},
+        child: child,
+      ),
     );
   }
 }
