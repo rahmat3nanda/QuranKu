@@ -7,6 +7,7 @@
  *
  */
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -17,6 +18,7 @@ import 'package:quranku/bloc/surah/surah_bloc.dart';
 import 'package:quranku/common/styles.dart';
 import 'package:quranku/model/app/error_model.dart';
 import 'package:quranku/model/app/singleton_model.dart';
+import 'package:quranku/model/ayat_model.dart';
 import 'package:quranku/model/surah_detail_model.dart';
 import 'package:quranku/model/surah_model.dart';
 import 'package:quranku/tool/helper.dart';
@@ -198,6 +200,10 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
               Text("Tempat turun: ${d.place ?? "-"}"),
               const SizedBox(height: 4),
               Text("Arti: ${d.meaning ?? "-"}"),
+              const SizedBox(height: 4),
+              Text("Surat Selanjutnya: ${d.nextSurah?.latinName ?? "-"}"),
+              const SizedBox(height: 4),
+              Text("Surat Sebelumnya: ${d.prevSurah?.latinName ?? "-"}"),
             ],
           ),
         ),
@@ -213,7 +219,47 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
               child: HtmlWidget(d.description ?? "-"),
             ),
           ),
+        if (d.ayat != null) const SizedBox(height: 12),
+        if (d.ayat != null) _cardView(child: _ayatView(d)),
       ],
+    );
+  }
+
+  Widget _ayatView(SurahDetailModel d) {
+    return ListView.separated(
+      primary: false,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      itemCount: d.ayat?.length ?? 0,
+      separatorBuilder: (c, i) => const SizedBox(height: 12),
+      itemBuilder: (c, i) {
+        AyatModel a = d.ayat![i];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    a.arabicText ?? "",
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  ".${a.ayatNumber?.toArab() ?? ""}",
+                  textAlign: TextAlign.right,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(a.latinText ?? ""),
+            const SizedBox(height: 4),
+            Text(a.indonesianText ?? "")
+          ],
+        );
+      },
     );
   }
 
