@@ -7,7 +7,7 @@
  *
  */
 
-import 'package:flutter/cupertino.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -40,6 +40,8 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
   late Helper _helper;
 
   late RefreshController _cRefresh;
+  AudioPlayer? _player;
+  List<bool>? _isPlayings;
   ErrorModel? _error;
   late bool _isLoading;
 
@@ -50,11 +52,13 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
     _surahBloc = BlocProvider.of<SurahBloc>(context);
     _helper = Helper();
     _cRefresh = RefreshController(initialRefresh: false);
+    _player = AudioPlayer();
     _isLoading = false;
     _onRefresh(fromCache: true);
   }
 
   void _onRefresh({bool fromCache = false}) {
+    _player?.stop();
     _getData(fromCache: fromCache);
     _cRefresh.refreshCompleted();
   }
@@ -65,6 +69,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
 
     if (fromCache && _detail() != null) {
       _isLoading = false;
+      _generatePlayer();
       return;
     }
 
@@ -76,6 +81,59 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
         .firstWhereOrNull((e) => e.number == widget.surah.number);
   }
 
+  void _generatePlayer() {
+    _isPlayings = List.generate(_detail()?.ayat?.length ?? 0, (i) => false);
+  }
+
+  void _onPlay(int i, bool isPlaying) async {
+    if (_player == null) {
+      return;
+    }
+
+    if (isPlaying) {
+      await _player?.stop();
+      setState(() {
+        _isPlayings![i] = false;
+      });
+      return;
+    }
+
+    await _player?.stop();
+    if (_isPlayings?.isNotEmpty ?? false) {
+      for (int i = 0; i < _isPlayings!.length; i++) {
+        setState(() {
+          _isPlayings![i] = false;
+        });
+      }
+    }
+
+    String? url = _detail()?.ayat?[i].audio?.values.firstOrNull;
+    if (url == null) {
+      return;
+    }
+
+    await _player?.setUrl(url);
+    setState(() {
+      _isPlayings?[i] = true;
+    });
+
+    await _player?.play();
+
+    setState(() {
+      _isPlayings?[i] = false;
+    });
+
+    _onPlay(i+1, false);
+  }
+
+  @override
+  void dispose() {
+    _player?.stop();
+    _player?.dispose();
+    _player = null;
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<SurahBloc, SurahState>(
@@ -84,6 +142,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
         if (s is SurahDetailSuccessState) {
           _model = SingletonModel.withContext(context);
           _isLoading = false;
+          _generatePlayer();
         } else if (s is SurahDetailFailedState) {
           _isLoading = false;
           if (_detail() != null) {
@@ -220,7 +279,11 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
             ),
           ),
         if (d.ayat != null) const SizedBox(height: 12),
-        if (d.ayat != null) _cardView(child: _ayatView(d)),
+        if (d.ayat != null)
+          _cardView(
+            child: _ayatView(d),
+            withGesture: false,
+          ),
       ],
     );
   }
@@ -232,38 +295,47 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       itemCount: d.ayat?.length ?? 0,
-      separatorBuilder: (c, i) => const SizedBox(height: 12),
+      separatorBuilder: (c, i) => const Divider(color: Colors.grey),
       itemBuilder: (c, i) {
         AyatModel a = d.ayat![i];
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              a.ayatNumber?.toArab() ?? "",
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    a.arabicText ?? "",
-                    textAlign: TextAlign.right,
+                  child: Column(
+                    children: [
+                      Text(
+                        a.arabicText ?? "",
+                        textAlign: TextAlign.left,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(a.latinText ?? ""),
+                      const SizedBox(height: 4),
+                      Text(a.indonesianText ?? "")
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  ".${a.ayatNumber?.toArab() ?? ""}",
-                  textAlign: TextAlign.right,
+                IconButton(
+                  color: AppColor.primary,
+                  onPressed: () => _onPlay(i, _isPlayings?[i] == true),
+                  icon: Icon(
+                      _isPlayings?[i] == true ? Icons.pause : Icons.play_arrow),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(a.latinText ?? ""),
-            const SizedBox(height: 4),
-            Text(a.indonesianText ?? "")
           ],
         );
       },
     );
   }
 
-  Widget _cardView({required Widget child}) {
+  Widget _cardView({required Widget child, bool withGesture = true}) {
     return Card(
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
@@ -272,7 +344,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         splashColor: AppColor.primary,
-        onTap: () {},
+        onTap: withGesture ? () {} : null,
         child: child,
       ),
     );
