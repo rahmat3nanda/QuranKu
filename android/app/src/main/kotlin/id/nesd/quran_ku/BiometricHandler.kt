@@ -1,9 +1,9 @@
 package id.nesd.quran_ku
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
+import androidx.fragment.app.FragmentActivity
 import java.util.concurrent.Executors
 
 internal object BiometricHandler {
@@ -20,12 +20,12 @@ internal object BiometricHandler {
     }
 
     fun showBiometricPrompt(
-        context: Context,
+        context: FragmentActivity,
         callback: (success: Boolean, message: String) -> Unit
     ) {
         val executor = Executors.newSingleThreadExecutor()
         val biometricPrompt = BiometricPrompt(
-            context as AppCompatActivity,
+            context,
             executor,
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
