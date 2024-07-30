@@ -28,10 +28,17 @@ class Biometric {
   Future<bool> isFingerprintAvailable() async {
     try {
       bool result = await _channel.invokeMethod('checkFingerprint');
-      AppLog.print(result);
       return Future.value(result);
     } on PlatformException catch (e) {
-      AppLog.print(e);
+      return Future.value(false);
+    }
+  }
+
+  Future<bool> authFingerprint() async {
+    try {
+      bool result = await _channel.invokeMethod('authFingerprint');
+      return Future.value(result);
+    } on PlatformException catch (e) {
       return Future.value(false);
     }
   }
